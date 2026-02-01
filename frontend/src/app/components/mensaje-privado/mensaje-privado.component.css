@@ -1,0 +1,392 @@
+.mensajes-privados-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: #fff;
+}
+
+/* Header */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.btn-nuevo {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.3s;
+}
+
+.btn-nuevo:hover {
+  background: #0056b3;
+}
+
+.btn-nuevo .icon {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+/* Búsqueda */
+.busqueda-usuarios {
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+}
+
+.input-busqueda {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.input-busqueda:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.resultados-busqueda {
+  position: absolute;
+  top: 100%;
+  left: 1rem;
+  right: 1rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.resultado-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.resultado-item:hover {
+  background: #f8f9fa;
+}
+
+/* Lista de conversaciones */
+.conversaciones {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conversacion-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.conversacion-item:hover {
+  background: #f8f9fa;
+}
+
+.avatar-container {
+  position: relative;
+  margin-right: 1rem;
+}
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.badge-no-leidos {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #dc3545;
+  color: white;
+  border-radius: 50%;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+  min-width: 20px;
+  text-align: center;
+}
+
+.conversacion-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-conversacion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.nickname {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.fecha {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.ultimo-mensaje {
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Conversación detalle */
+.conversacion-detalle {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.header-conversacion {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+}
+
+.btn-volver {
+  background: none;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.5rem;
+}
+
+.btn-volver:hover {
+  text-decoration: underline;
+}
+
+.usuario-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.usuario-info .nickname {
+  font-weight: bold;
+  color: #007bff;
+}
+
+.usuario-info .nombre {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+/* Mensajes */
+.mensajes-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  background: #f8f9fa;
+}
+
+.btn-cargar-mas {
+  display: block;
+  margin: 1rem auto;
+  padding: 0.5rem 1rem;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn-cargar-mas:hover {
+  background: #0056b3;
+}
+
+.mensaje {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.mensaje-propio {
+  justify-content: flex-end;
+}
+
+.mensaje-propio .mensaje-content {
+  background: #007bff;
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+}
+
+.mensaje-ajeno {
+  justify-content: flex-start;
+}
+
+.mensaje-ajeno .mensaje-content {
+  background: white;
+  color: #333;
+  border-radius: 18px 18px 18px 4px;
+}
+
+.mensaje-content {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.mensaje-texto {
+  margin: 0 0 0.5rem 0;
+  word-wrap: break-word;
+}
+
+.mensaje-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.leido-icon {
+  color: #28a745;
+}
+
+/* Formulario de envío */
+.form-envio {
+  border-top: 1px solid #e0e0e0;
+  padding: 1rem;
+  background: white;
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.input-mensaje {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 60px;
+}
+
+.input-mensaje:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.form-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.contador {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+
+.btn-enviar {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.3s;
+}
+
+.btn-enviar:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.btn-enviar:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.validation-errors {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.validation-errors p {
+  margin: 0.25rem 0;
+}
+
+/* Estados vacíos y loading */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #6c757d;
+}
+
+.empty-state p {
+  margin: 0.5rem 0;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mensajes-privados-container {
+    max-width: 100%;
+  }
+
+  .mensaje-content {
+    max-width: 85%;
+  }
+
+  .header h2 {
+    font-size: 1.25rem;
+  }
+
+  .btn-nuevo {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+  }
+}
