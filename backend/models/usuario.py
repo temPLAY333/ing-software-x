@@ -35,6 +35,10 @@ class Usuario(Document):
     fechaDeCreado = DateTimeField(default=datetime.utcnow)
     rol = StringField(choices=['admin', 'user', 'guest'], default='user')
     
+    # Relaciones de seguidores
+    seguidores = ListField(ReferenceField('self'), default=[])
+    siguiendo = ListField(ReferenceField('self'), default=[])
+
     # Metadata
     meta = {
         'collection': 'usuarios',
@@ -42,7 +46,9 @@ class Usuario(Document):
         'indexes': [
             'nickName',
             'mail',
-            'fechaDeCreado'
+            'fechaDeCreado',
+            'seguidores',
+            'siguiendo'
         ]
     }
     
@@ -66,7 +72,9 @@ class Usuario(Document):
             'fotoUsuario': self.fotoUsuario,
             'fotoUsuarioPortada': self.fotoUsuarioPortada,
             'fechaDeCreado': self.fechaDeCreado.isoformat(),
-            'rol': self.rol
+            'rol': self.rol,
+            'seguidores': [str(u.id) for u in self.seguidores],
+            'siguiendo': [str(u.id) for u in self.siguiendo]
         }
     
     def __str__(self):

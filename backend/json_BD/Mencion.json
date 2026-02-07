@@ -1,0 +1,12 @@
+[
+  {
+    "_id": "1",
+    "mensajeId": "1",
+    "usuarioId": "1"
+  },
+  {
+    "_id": "2",
+    "mensajeId": "2",
+    "usuarioId": "2"
+  }
+]

@@ -15,7 +15,7 @@ Uso:
 import os
 import sys
 from dotenv import load_dotenv
-from mongoengine import connect, disconnect
+from mongoengine import disconnect
 import argparse
 
 # Cargar variables de entorno
@@ -23,36 +23,13 @@ load_dotenv()
 
 # Importar modelos
 from models import Usuario, Mensaje, MensajePrivado, Etiqueta, Mencion
+from db import connect_databases
 
 def connect_db():
-    """Conecta a MongoDB Atlas"""
+    """Conecta a MongoDB (local por defecto)."""
     try:
-        mongodb_uri = os.getenv('MONGODB_URI')
-        if not mongodb_uri:
-            raise ValueError("MONGODB_URI no está configurado en .env")
-        
-        # Conectar a la base de datos principal
-        connect(
-            db='main_db',
-            host=mongodb_uri,
-            alias='default',
-            tls=True,
-            tlsAllowInvalidCertificates=False
-        )
-        print("✅ Conectado a MongoDB Atlas (main_db)")
-        
-        # Conectar a la base de datos de logs
-        mongodb_logs_uri = os.getenv('MONGODB_LOGS_URI')
-        if mongodb_logs_uri:
-            connect(
-                db='logs_db',
-                host=mongodb_logs_uri,
-                alias='logs',
-                tls=True,
-                tlsAllowInvalidCertificates=False
-            )
-            print("✅ Conectado a MongoDB Atlas (logs_db)")
-        
+        connect_databases()
+        print("✅ Conectado a MongoDB")
         return True
     except Exception as e:
         print(f"❌ Error conectando a MongoDB: {e}")
@@ -140,6 +117,13 @@ def insert_sample_data():
         usuario3.set_password("admin123")
         usuario3.save()
         print(f"✅ Usuario creado: {usuario3.nickName}")
+
+        # Configurar seguidores de ejemplo
+        usuario1.siguiendo = [usuario2]
+        usuario2.seguidores = [usuario1]
+        usuario1.save()
+        usuario2.save()
+        print("✅ Seguidores configurados: juanperez sigue a mariagarcia")
         
         # Crear etiquetas
         etiqueta1 = Etiqueta(texto="#python").save()

@@ -1,0 +1,19 @@
+<section>
+  <h2>Mensajes propios</h2>
+
+  <div *ngIf="mensajes.length === 0 && !cargando" class="empty">
+    No hay mensajes todavía.
+  </div>
+
+  <ul class="lista">
+    <li *ngFor="let mensaje of mensajes">
+      <p class="texto">{{ mensaje.texto }}</p>
+      <span class="fecha">{{ mensaje.fechaDeCreado | date:'short' }}</span>
+    </li>
+  </ul>
+
+  <button *ngIf="hayMas" (click)="cargarMensajes()" [disabled]="cargando">
+    {{ cargando ? 'Cargando...' : 'Cargar más' }}
+  </button>
+</section>
+

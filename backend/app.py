@@ -3,7 +3,7 @@ from flask_restful import Api
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
-from mongoengine import connect
+from db import connect_databases
 from dotenv import load_dotenv
 import os
 
@@ -34,32 +34,20 @@ mail = Mail(app)
 
 # MongoDB Connection
 try:
-    # Main Database
-    connect(
-        db='main_db',
-        host=os.getenv('MONGODB_URI'),
-        alias='default',
-        tls=True,
-        tlsAllowInvalidCertificates=False
-    )
-    
-    # Logs Database
-    connect(
-        db='logs_db',
-        host=os.getenv('MONGODB_LOGS_URI'),
-        alias='logs',
-        tls=True,
-        tlsAllowInvalidCertificates=False
-    )
-    print("✅ Connected to MongoDB Atlas")
+    connect_databases()
+    print("✅ Connected to MongoDB")
 except Exception as e:
     print(f"❌ Error connecting to MongoDB: {e}")
 
 # Import routes
 from routes.mensajes_privados import mensajes_privados_bp
+from routes.mensajes import mensajes_bp
+from routes.seguidores import seguidores_bp
 
 # Register blueprints
 app.register_blueprint(mensajes_privados_bp, url_prefix='/api')
+app.register_blueprint(mensajes_bp, url_prefix='/api')
+app.register_blueprint(seguidores_bp, url_prefix='/api')
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])

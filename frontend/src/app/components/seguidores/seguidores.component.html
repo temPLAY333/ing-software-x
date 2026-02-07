@@ -1,0 +1,17 @@
+<section>
+  <h2>Seguidores</h2>
+
+  <div *ngIf="seguidores.length === 0 && !cargando" class="empty">
+    No tienes seguidores todavía.
+  </div>
+
+  <ul class="lista">
+    <li *ngFor="let seguidor of seguidores">
+      <div class="nombre">
+        {{ seguidor.nombre }} {{ seguidor.apellido }}
+      </div>
+      <div class="nick">@{{ seguidor.nickName }}</div>
+    </li>
+  </ul>
+</section>
+

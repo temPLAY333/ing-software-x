@@ -1,0 +1,32 @@
+.app-shell {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.menu {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.menu a {
+  text-decoration: none;
+  color: #1f2937;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #f3f4f6;
+}
+
+.menu a.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+.content {
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  border-radius: 8px;
+}
+
