@@ -4,8 +4,8 @@
     <!-- Header -->
     <div class="header">
       <h2>Mensajes Privados</h2>
-      <button class="btn-nuevo" (click)="vistaActual = 'buscar'">
-        <span class="icon">+</span> Nuevo Mensaje
+      <button class="btn-nuevo" (click)="enfocarBusqueda()">
+        <span class="icon">+</span> Buscar usuario
       </button>
     </div>
 
@@ -126,14 +126,14 @@
       <div 
         *ngFor="let mensaje of conversacionActual"
         class="mensaje"
-        [ngClass]="obtenerClasesMensaje(mensaje, 'CURRENT_USER_ID')"
+        [ngClass]="obtenerClasesMensaje(mensaje, currentUserId)"
       >
         <div class="mensaje-content">
           <p class="mensaje-texto">{{ mensaje.texto }}</p>
           <div class="mensaje-footer">
             <span class="fecha">{{ formatearFecha(mensaje.fechaDeCreado) }}</span>
             <span 
-              *ngIf="mensaje.leido && mensaje.emisor.id === 'CURRENT_USER_ID'" 
+              *ngIf="mensaje.leido && mensaje.emisor.id === currentUserId" 
               class="leido-icon"
               title="Leído"
             >

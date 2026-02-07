@@ -21,6 +21,7 @@ export class MensajePrivadoComponent implements OnInit, OnDestroy {
 
   // Estado de la vista
   vistaActual: 'lista' | 'conversacion' = 'lista';
+  currentUserId = '';
   
   // Conversaciones
   conversaciones: any[] = [];
@@ -71,6 +72,7 @@ export class MensajePrivadoComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.cargarUsuarioActual();
     // Cargar lista de conversaciones
     this.cargarConversaciones();
 
@@ -114,6 +116,18 @@ export class MensajePrivadoComponent implements OnInit, OnDestroy {
     const userId = this.route.snapshot.paramMap.get('userId');
     if (userId) {
       // TODO: Cargar usuario y abrir conversación
+    }
+  }
+
+  private cargarUsuarioActual(): void {
+    try {
+      const stored = localStorage.getItem('user');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        this.currentUserId = parsed?.id || '';
+      }
+    } catch (error) {
+      console.error('Error al leer usuario actual:', error);
     }
   }
 
@@ -247,6 +261,12 @@ export class MensajePrivadoComponent implements OnInit, OnDestroy {
         this.buscandoUsuarios = false;
       }
     });
+  }
+
+  enfocarBusqueda(): void {
+    if (this.searchInput?.nativeElement) {
+      this.searchInput.nativeElement.focus();
+    }
   }
 
   /**

@@ -9,6 +9,7 @@ import { SeguidoresService, Usuario } from '../../services/seguidores.service';
 export class SeguidoresComponent implements OnInit {
   seguidores: Usuario[] = [];
   cargando = false;
+  error: string | null = null;
 
   constructor(private seguidoresService: SeguidoresService) {}
 
@@ -18,6 +19,7 @@ export class SeguidoresComponent implements OnInit {
 
   cargarSeguidores(): void {
     this.cargando = true;
+    this.error = null;
     this.seguidoresService.obtenerSeguidores().subscribe({
       next: (seguidores) => {
         this.seguidores = seguidores;
@@ -25,6 +27,7 @@ export class SeguidoresComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al cargar seguidores:', error);
+        this.error = 'No se pudieron cargar los seguidores';
         this.cargando = false;
       }
     });

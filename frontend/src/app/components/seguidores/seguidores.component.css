@@ -23,3 +23,13 @@
   margin: 12px 0;
 }
 
+.info {
+  color: #6b7280;
+  margin: 12px 0;
+}
+
+.error {
+  color: #dc2626;
+  margin: 12px 0;
+}
+

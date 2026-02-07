@@ -29,10 +29,19 @@ def listar_seguidores():
             }), 401
 
         seguidores = obtener_seguidores(usuario)
+        data = [seguidor.to_dict() for seguidor in seguidores]
+
+        if not data:
+            return jsonify({
+                "success": True,
+                "data": [],
+                "message": "Sin seguidores",
+                "code": "NO_FOLLOWERS"
+            }), 200
 
         return jsonify({
             "success": True,
-            "data": [seguidor.to_dict() for seguidor in seguidores],
+            "data": data,
         }), 200
     except Exception:
         return jsonify({
