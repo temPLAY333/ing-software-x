@@ -98,7 +98,6 @@ def test_listar_conversaciones(app_client, auth_headers, monkeypatch):
         }]
 
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(mensajes_service, "listar_conversaciones", fake_listar_conversaciones)
 
     response = app_client.get("/api/mensajes-privados/conversaciones", headers=auth_headers)
@@ -140,7 +139,6 @@ def test_obtener_conversacion(app_client, auth_headers, monkeypatch):
         }
 
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(mensajes_service, "obtener_conversacion", fake_obtener_conversacion)
 
     response = app_client.get("/api/mensajes-privados/conversacion/user_2", headers=auth_headers)
@@ -172,7 +170,6 @@ def test_crear_mensaje_privado(app_client, auth_headers, monkeypatch):
         return mensaje
 
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(mensajes_privados, "validar_mensaje_privado", lambda *args: (True, ""))
     monkeypatch.setattr(mensajes_privados.Log, "log_event", lambda **_kwargs: None)
     monkeypatch.setattr(mensajes_service, "crear_mensaje_privado", fake_crear_mensaje_privado)
@@ -203,8 +200,6 @@ def test_crear_mensaje_privado_invalido(app_client, auth_headers, monkeypatch):
     # Mockear en ambos módulos
     # Mockear en ambos módulos
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(mensajes_privados, "validar_mensaje_privado", lambda *args: (False, "error"))
 
     response = app_client.post(
@@ -235,7 +230,6 @@ def test_listar_conversaciones_usuario_no_encontrado(app_client, auth_headers, m
 
     # Mockear en ambos módulos
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
 
     response = app_client.get("/api/mensajes-privados/conversaciones", headers=auth_headers)
     assert response.status_code == 401
@@ -263,7 +257,6 @@ def test_obtener_conversacion_usuario_no_encontrado(app_client, auth_headers, mo
 
     # Mockear en ambos módulos
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
 
     response = app_client.get("/api/mensajes-privados/conversacion/user_2", headers=auth_headers)
     assert response.status_code == 404
@@ -298,7 +291,6 @@ def test_crear_mensaje_privado_receptor_no_encontrado(app_client, auth_headers, 
         return None  # Simula que no se pudo crear
 
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(mensajes_privados, "validar_mensaje_privado", lambda *args: (True, ""))
     monkeypatch.setattr(mensajes_service, "crear_mensaje_privado", fake_crear_mensaje_privado)
 
@@ -331,7 +323,6 @@ def test_contar_no_leidos(app_client, auth_headers, monkeypatch):
         return 3
 
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(mensajes_service, "contar_mensajes_no_leidos", fake_contar_mensajes_no_leidos)
 
     response = app_client.get("/api/mensajes-privados/no-leidos", headers=auth_headers)
@@ -370,9 +361,7 @@ def test_marcar_como_leido(app_client, auth_headers, monkeypatch):
         return True
 
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(utils.mongo_helpers, "get_mensaje_privado_by_id", fake_get_mensaje_privado_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_mensaje_privado_by_id", fake_get_mensaje_privado_by_id)
     monkeypatch.setattr(mensajes_service, "marcar_mensaje_como_leido", fake_marcar_mensaje_como_leido)
 
     response = app_client.put("/api/mensajes-privados/msg_1/leer", headers=auth_headers)
@@ -402,9 +391,7 @@ def test_marcar_como_leido_mensaje_no_encontrado(app_client, auth_headers, monke
         return False  # Simula que no se encontró
 
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(utils.mongo_helpers, "get_mensaje_privado_by_id", fake_get_mensaje_privado_by_id)
-    monkeypatch.setattr(mensajes_privados, "get_mensaje_privado_by_id", fake_get_mensaje_privado_by_id)
     monkeypatch.setattr(mensajes_service, "marcar_mensaje_como_leido", fake_marcar_mensaje_como_leido)
 
     response = app_client.put("/api/mensajes-privados/msg_1/leer", headers=auth_headers)

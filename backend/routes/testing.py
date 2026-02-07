@@ -5,7 +5,7 @@ Solo deben estar disponibles en modo desarrollo
 from flask import Blueprint, jsonify
 from flask_jwt_extended import create_access_token
 from models import Usuario
-from utils.mongo_helpers import get_usuario_by_id, get_usuario_by_nickname
+import utils.mongo_helpers
 
 testing_bp = Blueprint('testing', __name__)
 
@@ -18,11 +18,11 @@ def get_test_token(user_identifier):
     """
     try:
         # Intentar buscar por nickName primero (más común para testing)
-        usuario = get_usuario_by_nickname(user_identifier)
+        usuario = utils.mongo_helpers.get_usuario_by_nickname(user_identifier)
         
         # Si no se encontró por nickName, intentar por ID
         if not usuario:
-            usuario = get_usuario_by_id(user_identifier)
+            usuario = utils.mongo_helpers.get_usuario_by_id(user_identifier)
         
         if not usuario:
             # Verificar si hay usuarios en la base de datos (con manejo de errores)

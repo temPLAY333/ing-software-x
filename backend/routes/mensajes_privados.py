@@ -15,16 +15,8 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.log import Log
 from utils.validators import validar_mensaje_privado
 from utils.decorators import rate_limit
-from utils.mongo_helpers import get_usuario_by_id
-from services.mensajes_privados_service import (
-    obtener_mensajes_privados,
-    obtener_conversacion,
-    crear_mensaje_privado,
-    listar_conversaciones,
-    marcar_mensaje_como_leido,
-    contar_mensajes_no_leidos,
-    obtener_usuarios_por_ids
-)
+import utils.mongo_helpers
+import services.mensajes_privados_service
 
 # Crear blueprint
 mensajes_privados_bp = Blueprint('mensajes_privados', __name__)
@@ -33,7 +25,7 @@ mensajes_privados_bp = Blueprint('mensajes_privados', __name__)
 @mensajes_privados_bp.route('/mensajes-privados', methods=['POST'])
 @jwt_required()
 @rate_limit(max_requests=10, window_seconds=60)  # 10 mensajes por minuto
-def crear_mensaje_privado():
+def crear_mensaje_privado_route():
     """
     Crear un nuevo mensaje privado
     
@@ -52,7 +44,7 @@ def crear_mensaje_privado():
     try:
         # Obtener usuario autenticado (emisor)
         emisor_id = get_jwt_identity()
-        emisor = get_usuario_by_id(emisor_id)
+        emisor = utils.mongo_helpers.get_usuario_by_id(emisor_id)
         
         if not emisor:
             return jsonify({
@@ -76,7 +68,7 @@ def crear_mensaje_privado():
             }), 400
         
         # Usar servicio (Gestor de Mensajes) para crear mensaje
-        mensaje = crear_mensaje_privado(emisor_id, receptor_id, texto)
+        mensaje = services.mensajes_privados_service.crear_mensaje_privado(emisor_id, receptor_id, texto)
         
         if not mensaje:
             return jsonify({
@@ -86,8 +78,8 @@ def crear_mensaje_privado():
             }), 400
         
         # Registrar en logs
-        emisor = get_usuario_by_id(emisor_id)
-        receptor = get_usuario_by_id(receptor_id)
+        emisor = utils.mongo_helpers.get_usuario_by_id(emisor_id)
+        receptor = utils.mongo_helpers.get_usuario_by_id(receptor_id)
         if emisor and receptor:
             Log.log_event(
                 level='INFO',
@@ -127,7 +119,7 @@ def crear_mensaje_privado():
 
 @mensajes_privados_bp.route('/mensajes-privados/conversacion/<user_id>', methods=['GET'])
 @jwt_required()
-def obtener_conversacion(user_id):
+def obtener_conversacion_route(user_id):
     """
     Obtener conversación con un usuario específico
     
@@ -142,7 +134,7 @@ def obtener_conversacion(user_id):
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = get_usuario_by_id(usuario_actual_id)
+        usuario_actual = utils.mongo_helpers.get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -152,7 +144,7 @@ def obtener_conversacion(user_id):
             }), 401
         
         # Verificar que el otro usuario existe
-        otro_usuario = get_usuario_by_id(user_id)
+        otro_usuario = utils.mongo_helpers.get_usuario_by_id(user_id)
         if not otro_usuario:
             return jsonify({
                 'success': False,
@@ -165,7 +157,7 @@ def obtener_conversacion(user_id):
         offset = int(request.args.get('offset', 0))
         
         # Usar servicio (Gestor de Mensajes) para obtener conversación
-        data = obtener_conversacion(usuario_actual_id, user_id, limit, offset)
+        data = services.mensajes_privados_service.obtener_conversacion(usuario_actual_id, user_id, limit, offset)
         
         return jsonify({
             'success': True,
@@ -182,7 +174,7 @@ def obtener_conversacion(user_id):
 
 @mensajes_privados_bp.route('/mensajes-privados/conversaciones', methods=['GET'])
 @jwt_required()
-def listar_conversaciones():
+def listar_conversaciones_route():
     """
     Listar todas las conversaciones del usuario actual
     
@@ -192,7 +184,7 @@ def listar_conversaciones():
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = get_usuario_by_id(usuario_actual_id)
+        usuario_actual = utils.mongo_helpers.get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -202,7 +194,7 @@ def listar_conversaciones():
             }), 401
         
         # Usar servicio (Gestor de Mensajes) para listar conversaciones
-        conversaciones = listar_conversaciones(usuario_actual_id)
+        conversaciones = services.mensajes_privados_service.listar_conversaciones(usuario_actual_id)
         
         return jsonify({
             'success': True,
@@ -221,7 +213,7 @@ def listar_conversaciones():
 
 @mensajes_privados_bp.route('/mensajes-privados/<mensaje_id>/leer', methods=['PUT'])
 @jwt_required()
-def marcar_como_leido(mensaje_id):
+def marcar_como_leido_route(mensaje_id):
     """
     Marcar un mensaje como leído
     
@@ -233,7 +225,7 @@ def marcar_como_leido(mensaje_id):
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = get_usuario_by_id(usuario_actual_id)
+        usuario_actual = utils.mongo_helpers.get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -243,7 +235,7 @@ def marcar_como_leido(mensaje_id):
             }), 401
         
         # Usar servicio (Gestor de Mensajes) para marcar como leído
-        exito = marcar_mensaje_como_leido(mensaje_id, usuario_actual_id)
+        exito = services.mensajes_privados_service.marcar_mensaje_como_leido(mensaje_id, usuario_actual_id)
         
         if not exito:
             return jsonify({
@@ -253,8 +245,7 @@ def marcar_como_leido(mensaje_id):
             }), 404
         
         # Obtener mensaje actualizado para retornar
-        from utils.mongo_helpers import get_mensaje_privado_by_id
-        mensaje = get_mensaje_privado_by_id(mensaje_id)
+        mensaje = utils.mongo_helpers.get_mensaje_privado_by_id(mensaje_id)
         
         return jsonify({
             'success': True,
@@ -274,7 +265,7 @@ def marcar_como_leido(mensaje_id):
 
 @mensajes_privados_bp.route('/mensajes-privados/no-leidos', methods=['GET'])
 @jwt_required()
-def contar_no_leidos():
+def contar_no_leidos_route():
     """
     Contar mensajes no leídos del usuario actual
     
@@ -284,7 +275,7 @@ def contar_no_leidos():
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = get_usuario_by_id(usuario_actual_id)
+        usuario_actual = utils.mongo_helpers.get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -294,7 +285,7 @@ def contar_no_leidos():
             }), 401
         
         # Usar servicio (Gestor de Mensajes) para contar no leídos
-        no_leidos = contar_mensajes_no_leidos(usuario_actual_id)
+        no_leidos = services.mensajes_privados_service.contar_mensajes_no_leidos(usuario_actual_id)
         
         return jsonify({
             'success': True,
@@ -327,7 +318,7 @@ def eliminar_mensaje(mensaje_id):
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = get_usuario_by_id(usuario_actual_id)
+        usuario_actual = utils.mongo_helpers.get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -337,8 +328,7 @@ def eliminar_mensaje(mensaje_id):
             }), 401
         
         # Buscar mensaje para verificar permisos
-        from utils.mongo_helpers import get_mensaje_privado_by_id
-        mensaje = get_mensaje_privado_by_id(mensaje_id)
+        mensaje = utils.mongo_helpers.get_mensaje_privado_by_id(mensaje_id)
         if not mensaje:
             return jsonify({
                 'success': False,

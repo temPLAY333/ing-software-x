@@ -343,7 +343,6 @@ def test_obtener_token_error_en_to_dict(app_client, monkeypatch):
     monkeypatch.setattr("mongoengine.connection.get_db", fake_get_db)
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_nickname", fake_get_usuario_by_nickname)
-    monkeypatch.setattr(testing_route, "get_usuario_by_nickname", fake_get_usuario_by_nickname)
 
     response = app_client.get("/api/testing/token/juanperez")
 

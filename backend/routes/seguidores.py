@@ -9,8 +9,8 @@ from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 from models import Usuario
-from services.seguidores_service import obtener_seguidores
-from utils.mongo_helpers import get_usuario_by_id
+import services.seguidores_service
+import utils.mongo_helpers
 
 seguidores_bp = Blueprint("seguidores", __name__)
 
@@ -20,7 +20,7 @@ seguidores_bp = Blueprint("seguidores", __name__)
 def listar_seguidores():
     try:
         usuario_id = get_jwt_identity()
-        usuario = get_usuario_by_id(usuario_id)
+        usuario = utils.mongo_helpers.get_usuario_by_id(usuario_id)
 
         if not usuario:
             return jsonify({
@@ -29,7 +29,7 @@ def listar_seguidores():
                 "code": "AUTH_ERROR",
             }), 401
 
-        seguidores = obtener_seguidores(usuario)
+        seguidores = services.seguidores_service.obtener_seguidores(usuario)
         # Convertir a lista para evitar problemas de thread local
         seguidores_list = list(seguidores) if seguidores else []
         data = [seguidor.to_dict() for seguidor in seguidores_list]

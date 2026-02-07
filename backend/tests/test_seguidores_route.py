@@ -39,7 +39,6 @@ def test_listar_seguidores_ok(app_client, auth_headers, monkeypatch):
     # Mockear en ambos módulos
     import routes.seguidores as seguidores_route
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(seguidores_route, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(seguidores_service, "obtener_seguidores", fake_obtener_seguidores)
 
     response = app_client.get("/api/usuarios/seguidores", headers=auth_headers)
@@ -65,7 +64,6 @@ def test_listar_seguidores_vacio(app_client, auth_headers, monkeypatch):
     # Mockear en ambos módulos
     import routes.seguidores as seguidores_route
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(seguidores_route, "get_usuario_by_id", fake_get_usuario_by_id)
     monkeypatch.setattr(seguidores_service, "obtener_seguidores", fake_obtener_seguidores)
 
     response = app_client.get("/api/usuarios/seguidores", headers=auth_headers)
@@ -93,7 +91,6 @@ def test_listar_seguidores_usuario_no_encontrado(app_client, auth_headers, monke
     # Mockear en ambos módulos
     import routes.seguidores as seguidores_route
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(seguidores_route, "get_usuario_by_id", fake_get_usuario_by_id)
 
     response = app_client.get("/api/usuarios/seguidores", headers=auth_headers)
     assert response.status_code == 401
@@ -112,7 +109,6 @@ def test_listar_seguidores_error_interno(app_client, auth_headers, monkeypatch):
     # Mockear en ambos módulos
     import routes.seguidores as seguidores_route
     monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
-    monkeypatch.setattr(seguidores_route, "get_usuario_by_id", fake_get_usuario_by_id)
 
     response = app_client.get("/api/usuarios/seguidores", headers=auth_headers)
     assert response.status_code == 500

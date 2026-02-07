@@ -232,6 +232,7 @@ export class MensajePrivadoComponent implements OnInit, OnDestroy {
     if (!texto) return;
 
     this.enviandoMensaje = true;
+    this.mensajeForm.get('texto')?.disable();
 
     this.mensajesService.enviarMensaje(this.usuarioSeleccionado.id, texto).subscribe({
       next: (mensaje) => {
@@ -245,11 +246,13 @@ export class MensajePrivadoComponent implements OnInit, OnDestroy {
         this.scrollToBottom();
         
         this.enviandoMensaje = false;
+        this.mensajeForm.get('texto')?.enable();
       },
       error: (error) => {
         console.error('Error al enviar mensaje:', error);
         alert(error.message || 'Error al enviar mensaje');
         this.enviandoMensaje = false;
+        this.mensajeForm.get('texto')?.enable();
       }
     });
   }
