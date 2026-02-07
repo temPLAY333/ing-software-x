@@ -11,13 +11,20 @@ Endpoints:
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from mongoengine import Q
-from datetime import datetime
 
-from models import Usuario, MensajePrivado
 from models.log import Log
 from utils.validators import validar_mensaje_privado
 from utils.decorators import rate_limit
+from utils.mongo_helpers import get_usuario_by_id
+from services.mensajes_privados_service import (
+    obtener_mensajes_privados,
+    obtener_conversacion,
+    crear_mensaje_privado,
+    listar_conversaciones,
+    marcar_mensaje_como_leido,
+    contar_mensajes_no_leidos,
+    obtener_usuarios_por_ids
+)
 
 # Crear blueprint
 mensajes_privados_bp = Blueprint('mensajes_privados', __name__)
@@ -45,7 +52,7 @@ def crear_mensaje_privado():
     try:
         # Obtener usuario autenticado (emisor)
         emisor_id = get_jwt_identity()
-        emisor = Usuario.objects(id=emisor_id).first()
+        emisor = get_usuario_by_id(emisor_id)
         
         if not emisor:
             return jsonify({
@@ -68,44 +75,32 @@ def crear_mensaje_privado():
                 'code': 'VALIDATION_ERROR'
             }), 400
         
-        # Buscar receptor
-        receptor = Usuario.objects(id=receptor_id).first()
-        if not receptor:
-            return jsonify({
-                'success': False,
-                'error': 'Usuario receptor no encontrado',
-                'code': 'USER_NOT_FOUND'
-            }), 404
+        # Usar servicio (Gestor de Mensajes) para crear mensaje
+        mensaje = crear_mensaje_privado(emisor_id, receptor_id, texto)
         
-        # Verificar que emisor != receptor
-        if str(emisor.id) == str(receptor.id):
+        if not mensaje:
             return jsonify({
                 'success': False,
-                'error': 'No puedes enviarte mensajes a ti mismo',
-                'code': 'SELF_MESSAGE_ERROR'
+                'error': 'No se pudo crear el mensaje. Verifica que el receptor exista y no sea el mismo que el emisor.',
+                'code': 'MESSAGE_CREATION_ERROR'
             }), 400
         
-        # Crear mensaje privado
-        mensaje = MensajePrivado(
-            texto=texto,
-            emisor=emisor,
-            receptor=receptor
-        )
-        mensaje.save()
-        
         # Registrar en logs
-        Log.log_event(
-            level='INFO',
-            message=f'Mensaje privado enviado de {emisor.nickName} a {receptor.nickName}',
-            user_id=str(emisor.id),
-            action='send_private_message',
-            ip_address=request.remote_addr,
-            metadata={
-                'mensaje_id': str(mensaje.id),
-                'receptor_id': str(receptor.id),
-                'texto_length': len(texto)
-            }
-        )
+        emisor = get_usuario_by_id(emisor_id)
+        receptor = get_usuario_by_id(receptor_id)
+        if emisor and receptor:
+            Log.log_event(
+                level='INFO',
+                message=f'Mensaje privado enviado de {emisor.nickName} a {receptor.nickName}',
+                user_id=str(emisor.id),
+                action='send_private_message',
+                ip_address=request.remote_addr,
+                metadata={
+                    'mensaje_id': str(mensaje.id),
+                    'receptor_id': str(receptor.id),
+                    'texto_length': len(texto)
+                }
+            )
         
         # Retornar respuesta
         return jsonify({
@@ -147,7 +142,7 @@ def obtener_conversacion(user_id):
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = Usuario.objects(id=usuario_actual_id).first()
+        usuario_actual = get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -157,7 +152,7 @@ def obtener_conversacion(user_id):
             }), 401
         
         # Verificar que el otro usuario existe
-        otro_usuario = Usuario.objects(id=user_id).first()
+        otro_usuario = get_usuario_by_id(user_id)
         if not otro_usuario:
             return jsonify({
                 'success': False,
@@ -169,36 +164,12 @@ def obtener_conversacion(user_id):
         limit = int(request.args.get('limit', 50))
         offset = int(request.args.get('offset', 0))
         
-        # Buscar conversación (mensajes entre ambos usuarios)
-        mensajes = MensajePrivado.objects(
-            Q(emisor=usuario_actual, receptor=otro_usuario) |
-            Q(emisor=otro_usuario, receptor=usuario_actual)
-        ).order_by('fechaDeCreado').skip(offset).limit(limit)
-        
-        # Contar total de mensajes
-        total = MensajePrivado.objects(
-            Q(emisor=usuario_actual, receptor=otro_usuario) |
-            Q(emisor=otro_usuario, receptor=usuario_actual)
-        ).count()
-        
-        # Marcar como leídos los mensajes recibidos
-        mensajes_no_leidos = MensajePrivado.objects(
-            emisor=otro_usuario,
-            receptor=usuario_actual,
-            leido=None
-        )
-        for msg in mensajes_no_leidos:
-            msg.marcar_como_leido()
+        # Usar servicio (Gestor de Mensajes) para obtener conversación
+        data = obtener_conversacion(usuario_actual_id, user_id, limit, offset)
         
         return jsonify({
             'success': True,
-            'data': {
-                'conversacion': [mensaje.to_dict() for mensaje in mensajes],
-                'total': total,
-                'limit': limit,
-                'offset': offset,
-                'hasMore': (offset + limit) < total
-            }
+            'data': data
         }), 200
         
     except Exception as e:
@@ -221,7 +192,7 @@ def listar_conversaciones():
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = Usuario.objects(id=usuario_actual_id).first()
+        usuario_actual = get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -230,40 +201,8 @@ def listar_conversaciones():
                 'code': 'AUTH_ERROR'
             }), 401
         
-        # Obtener todos los mensajes donde el usuario participa
-        mensajes = MensajePrivado.objects(
-            Q(emisor=usuario_actual) | Q(receptor=usuario_actual)
-        ).order_by('-fechaDeCreado')
-        
-        # Agrupar por conversación (usuario contrario)
-        conversaciones_dict = {}
-        
-        for mensaje in mensajes:
-            # Determinar el otro usuario
-            if str(mensaje.emisor.id) == str(usuario_actual.id):
-                otro_usuario = mensaje.receptor
-            else:
-                otro_usuario = mensaje.emisor
-            
-            otro_usuario_id = str(otro_usuario.id)
-            
-            # Si es la primera vez que vemos este usuario, agregarlo
-            if otro_usuario_id not in conversaciones_dict:
-                # Contar mensajes no leídos de este usuario
-                no_leidos = MensajePrivado.objects(
-                    emisor=otro_usuario,
-                    receptor=usuario_actual,
-                    leido=None
-                ).count()
-                
-                conversaciones_dict[otro_usuario_id] = {
-                    'usuario': otro_usuario.to_dict(),
-                    'ultimoMensaje': mensaje.to_dict(),
-                    'mensajesNoLeidos': no_leidos
-                }
-        
-        # Convertir a lista
-        conversaciones = list(conversaciones_dict.values())
+        # Usar servicio (Gestor de Mensajes) para listar conversaciones
+        conversaciones = listar_conversaciones(usuario_actual_id)
         
         return jsonify({
             'success': True,
@@ -271,9 +210,11 @@ def listar_conversaciones():
         }), 200
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
-            'error': 'Error al listar conversaciones',
+            'error': f'Error al listar conversaciones: {str(e)}',
             'code': 'INTERNAL_ERROR'
         }), 500
 
@@ -292,7 +233,7 @@ def marcar_como_leido(mensaje_id):
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = Usuario.objects(id=usuario_actual_id).first()
+        usuario_actual = get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -301,31 +242,25 @@ def marcar_como_leido(mensaje_id):
                 'code': 'AUTH_ERROR'
             }), 401
         
-        # Buscar mensaje
-        mensaje = MensajePrivado.objects(id=mensaje_id).first()
-        if not mensaje:
+        # Usar servicio (Gestor de Mensajes) para marcar como leído
+        exito = marcar_mensaje_como_leido(mensaje_id, usuario_actual_id)
+        
+        if not exito:
             return jsonify({
                 'success': False,
-                'error': 'Mensaje no encontrado',
-                'code': 'MESSAGE_NOT_FOUND'
+                'error': 'Mensaje no encontrado o no tienes permiso para marcarlo',
+                'code': 'MESSAGE_NOT_FOUND_OR_FORBIDDEN'
             }), 404
         
-        # Verificar que el usuario actual es el receptor
-        if str(mensaje.receptor.id) != str(usuario_actual.id):
-            return jsonify({
-                'success': False,
-                'error': 'No tienes permiso para marcar este mensaje',
-                'code': 'FORBIDDEN'
-            }), 403
-        
-        # Marcar como leído
-        mensaje.marcar_como_leido()
+        # Obtener mensaje actualizado para retornar
+        from utils.mongo_helpers import get_mensaje_privado_by_id
+        mensaje = get_mensaje_privado_by_id(mensaje_id)
         
         return jsonify({
             'success': True,
             'data': {
-                'id': str(mensaje.id),
-                'leido': mensaje.leido.isoformat() if mensaje.leido else None
+                'id': str(mensaje.id) if mensaje else mensaje_id,
+                'leido': mensaje.leido.isoformat() if mensaje and mensaje.leido else None
             }
         }), 200
         
@@ -349,7 +284,7 @@ def contar_no_leidos():
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = Usuario.objects(id=usuario_actual_id).first()
+        usuario_actual = get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -358,11 +293,8 @@ def contar_no_leidos():
                 'code': 'AUTH_ERROR'
             }), 401
         
-        # Contar mensajes no leídos
-        no_leidos = MensajePrivado.objects(
-            receptor=usuario_actual,
-            leido=None
-        ).count()
+        # Usar servicio (Gestor de Mensajes) para contar no leídos
+        no_leidos = contar_mensajes_no_leidos(usuario_actual_id)
         
         return jsonify({
             'success': True,
@@ -372,9 +304,11 @@ def contar_no_leidos():
         }), 200
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
-            'error': 'Error al contar mensajes no leídos',
+            'error': f'Error al contar mensajes no leídos: {str(e)}',
             'code': 'INTERNAL_ERROR'
         }), 500
 
@@ -393,7 +327,7 @@ def eliminar_mensaje(mensaje_id):
     try:
         # Obtener usuario autenticado
         usuario_actual_id = get_jwt_identity()
-        usuario_actual = Usuario.objects(id=usuario_actual_id).first()
+        usuario_actual = get_usuario_by_id(usuario_actual_id)
         
         if not usuario_actual:
             return jsonify({
@@ -402,8 +336,9 @@ def eliminar_mensaje(mensaje_id):
                 'code': 'AUTH_ERROR'
             }), 401
         
-        # Buscar mensaje
-        mensaje = MensajePrivado.objects(id=mensaje_id).first()
+        # Buscar mensaje para verificar permisos
+        from utils.mongo_helpers import get_mensaje_privado_by_id
+        mensaje = get_mensaje_privado_by_id(mensaje_id)
         if not mensaje:
             return jsonify({
                 'success': False,
@@ -412,14 +347,23 @@ def eliminar_mensaje(mensaje_id):
             }), 404
         
         # Verificar que el usuario actual es el emisor
-        if str(mensaje.emisor.id) != str(usuario_actual.id):
+        # Obtener ID del emisor sin intentar dereferenciar
+        emisor_id = None
+        if hasattr(mensaje, '_data') and 'emisor' in mensaje._data:
+            emisor_id = str(mensaje._data['emisor'])
+        elif hasattr(mensaje.emisor, 'id'):
+            emisor_id = str(mensaje.emisor.id)
+        else:
+            emisor_id = str(mensaje.emisor)
+        
+        if emisor_id != str(usuario_actual.id):
             return jsonify({
                 'success': False,
                 'error': 'No tienes permiso para eliminar este mensaje',
                 'code': 'FORBIDDEN'
             }), 403
         
-        # Eliminar mensaje
+        # Eliminar mensaje (operación directa de BD, no requiere servicio)
         mensaje.delete()
         
         # Log del evento

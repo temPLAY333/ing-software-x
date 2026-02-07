@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -8,13 +8,16 @@ import { AppComponent } from './app.component';
 import { MensajePrivadoComponent } from './components/mensaje-privado/mensaje-privado.component';
 import { MensajesPropiosComponent } from './components/mensajes-propios/mensajes-propios.component';
 import { SeguidoresComponent } from './components/seguidores/seguidores.component';
+import { HomeComponent } from './components/home/home.component';
+import { HttpErrorInterceptor } from './interceptors/http-error.interceptor';
 
 @NgModule({
   declarations: [
     AppComponent,
     MensajePrivadoComponent,
     MensajesPropiosComponent,
-    SeguidoresComponent
+    SeguidoresComponent,
+    HomeComponent
   ],
   imports: [
     BrowserModule,
@@ -22,7 +25,13 @@ import { SeguidoresComponent } from './components/seguidores/seguidores.componen
     ReactiveFormsModule,
     AppRoutingModule
   ],
-  providers: [],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: HttpErrorInterceptor,
+      multi: true
+    }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

@@ -125,6 +125,15 @@ export class MensajePrivadoComponent implements OnInit, OnDestroy {
       if (stored) {
         const parsed = JSON.parse(stored);
         this.currentUserId = parsed?.id || '';
+      } else {
+        // Fallback: esperar a que el servicio de auth inicialice
+        setTimeout(() => {
+          const stored2 = localStorage.getItem('user');
+          if (stored2) {
+            const parsed = JSON.parse(stored2);
+            this.currentUserId = parsed?.id || '';
+          }
+        }, 500);
       }
     } catch (error) {
       console.error('Error al leer usuario actual:', error);

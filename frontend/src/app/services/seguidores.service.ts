@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface Usuario {
@@ -33,6 +34,10 @@ export class SeguidoresService {
           return [];
         }
         return response.data;
+      }),
+      catchError(() => {
+        // En caso de error, retornar array vacío
+        return of([]);
       })
     );
   }

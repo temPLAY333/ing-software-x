@@ -1,12 +1,25 @@
 <div class="app-shell">
-  <nav class="menu">
-    <a routerLink="/mensajes-propios" routerLinkActive="active">Ver mensajes propios</a>
-    <a routerLink="/seguidores" routerLinkActive="active">Ver seguidores</a>
-    <a routerLink="/mensajes-privados" routerLinkActive="active">Enviar mensaje privado</a>
-  </nav>
-
   <main class="content">
     <router-outlet></router-outlet>
   </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav" *ngIf="tieneToken()">
+    <a routerLink="/mensajes-privados" routerLinkActive="active" class="nav-item" title="Buscar">
+      <span class="nav-icon">🔍</span>
+    </a>
+    <a routerLink="/mensajes-propios" routerLinkActive="active" class="nav-item" title="Ver Mensajes Propios">
+      <span class="nav-icon">🏠</span>
+    </a>
+    <a routerLink="/mensajes-privados" routerLinkActive="active" class="nav-item nav-item-center" title="Nuevo">
+      <span class="nav-icon-plus">+</span>
+    </a>
+    <a routerLink="/seguidores" routerLinkActive="active" class="nav-item" title="Mostrar Seguidores">
+      <span class="nav-icon">🔔</span>
+    </a>
+    <a routerLink="/mensajes-privados" routerLinkActive="active" class="nav-item" title="Chats Privados">
+      <span class="nav-icon">✉</span>
+    </a>
+  </nav>
 </div>
 

@@ -1,12 +1,25 @@
 <div class="mensajes-privados-container">
   <!-- Vista: Lista de Conversaciones -->
   <div *ngIf="vistaActual === 'lista'" class="conversaciones-lista">
-    <!-- Header -->
-    <div class="header">
-      <h2>Mensajes Privados</h2>
-      <button class="btn-nuevo" (click)="enfocarBusqueda()">
-        <span class="icon">+</span> Buscar usuario
-      </button>
+    <!-- Top Bar con Logo -->
+    <div class="top-bar">
+      <div class="logo-container">
+        <span class="tux-logo">🐧</span>
+        <span class="app-name">Microblogging</span>
+      </div>
+    </div>
+
+    <!-- Header Principal -->
+    <div class="header-principal">
+      <div class="header-left">
+        <div class="avatar-placeholder"></div>
+      </div>
+      <div class="header-center">
+        <h2>Mensajes Privados</h2>
+      </div>
+      <div class="header-right">
+        <span class="envelope-icon">✉</span>
+      </div>
     </div>
 
     <!-- Búsqueda de usuarios -->
@@ -16,7 +29,7 @@
           #searchInput
           type="text" 
           formControlName="busqueda"
-          placeholder="Buscar usuario..."
+          placeholder="Buscar"
           class="input-busqueda"
         />
       </form>
@@ -34,7 +47,7 @@
             class="avatar"
           />
           <div class="usuario-info">
-            <div class="nickname">@{{ usuario.nickName }}</div>
+            <div class="nickname">{{ '@' + usuario.nickName }}</div>
             <div class="nombre">{{ usuario.nombre }} {{ usuario.apellido }}</div>
           </div>
         </div>
@@ -66,7 +79,7 @@
         
         <div class="conversacion-info">
           <div class="header-conversacion">
-            <span class="nickname">@{{ conv.usuario.nickName }}</span>
+            <span class="nickname">{{ '@' + conv.usuario.nickName }}</span>
             <span class="fecha">{{ formatearFecha(conv.ultimoMensaje.fechaDeCreado) }}</span>
           </div>
           <div class="ultimo-mensaje">
@@ -101,7 +114,7 @@
           class="avatar"
         />
         <div class="usuario-info">
-          <div class="nickname">@{{ usuarioSeleccionado.nickName }}</div>
+          <div class="nickname">{{ '@' + usuarioSeleccionado.nickName }}</div>
           <div class="nombre">{{ usuarioSeleccionado.nombre }} {{ usuarioSeleccionado.apellido }}</div>
         </div>
       </div>

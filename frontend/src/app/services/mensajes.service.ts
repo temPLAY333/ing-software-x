@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface Mensaje {
@@ -36,9 +37,14 @@ export class MensajesService {
     return this.http.get<ApiResponse<any>>(`${this.apiUrl}/mios`, { params }).pipe(
       map(response => {
         if (!response.success || !response.data) {
-          throw new Error(response.error || 'Error al obtener mensajes propios');
+          // Retornar estructura vacía en lugar de lanzar error
+          return { mensajes: [], total: 0, hasMore: false };
         }
         return response.data;
+      }),
+      catchError(() => {
+        // En caso de error, retornar estructura vacía
+        return of({ mensajes: [], total: 0, hasMore: false });
       })
     );
   }

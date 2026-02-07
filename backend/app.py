@@ -14,8 +14,8 @@ load_dotenv()
 app = Flask(__name__)
 
 # Configuration
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key')
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production-min-32-chars')
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'jwt-secret-key-change-in-production-min-32-chars-long')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = int(os.getenv('JWT_ACCESS_TOKEN_EXPIRES', 3600))
 
 # Mail configuration
@@ -27,7 +27,11 @@ app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@app.com')
 
 # Initialize extensions
-CORS(app, resources={r"/api/*": {"origins": os.getenv('CORS_ORIGINS', '*').split(',')}})
+CORS(app, resources={r"/api/*": {
+    "origins": os.getenv('CORS_ORIGINS', '*').split(','),
+    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    "allow_headers": ["Content-Type", "Authorization"]
+}})
 api = Api(app)
 jwt = JWTManager(app)
 mail = Mail(app)
@@ -43,11 +47,13 @@ except Exception as e:
 from routes.mensajes_privados import mensajes_privados_bp
 from routes.mensajes import mensajes_bp
 from routes.seguidores import seguidores_bp
+from routes.testing import testing_bp
 
 # Register blueprints
 app.register_blueprint(mensajes_privados_bp, url_prefix='/api')
 app.register_blueprint(mensajes_bp, url_prefix='/api')
 app.register_blueprint(seguidores_bp, url_prefix='/api')
+app.register_blueprint(testing_bp, url_prefix='/api')  # Testing routes
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])

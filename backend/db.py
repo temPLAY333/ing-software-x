@@ -35,6 +35,7 @@ def connect_databases():
         alias="default",
         tls=tls_enabled,
         tlsAllowInvalidCertificates=tls_allow_invalid,
+        uuidRepresentation='standard',
     )
 
     connect(
@@ -43,5 +44,6 @@ def connect_databases():
         alias="logs",
         tls=tls_enabled,
         tlsAllowInvalidCertificates=tls_allow_invalid,
+        uuidRepresentation='standard',
     )
 

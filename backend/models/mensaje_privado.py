@@ -50,12 +50,48 @@ class MensajePrivado(Document):
     
     def to_dict(self):
         """Convierte el mensaje privado a diccionario"""
+        # Manejar emisor y receptor que pueden ser ObjectIds o objetos Usuario
+        emisor_dict = None
+        receptor_dict = None
+        
+        try:
+            # Si emisor es un objeto Usuario, usar to_dict()
+            if hasattr(self.emisor, 'to_dict'):
+                emisor_dict = self.emisor.to_dict()
+            # Si es un ObjectId, intentar obtener el usuario
+            elif hasattr(self, '_data') and 'emisor' in self._data:
+                from utils.mongo_helpers import get_usuario_by_id
+                emisor_obj = get_usuario_by_id(str(self._data['emisor']))
+                emisor_dict = emisor_obj.to_dict() if emisor_obj else None
+            elif self.emisor:
+                from utils.mongo_helpers import get_usuario_by_id
+                emisor_obj = get_usuario_by_id(str(self.emisor))
+                emisor_dict = emisor_obj.to_dict() if emisor_obj else None
+        except Exception as e:
+            print(f"⚠️ Error obteniendo emisor en to_dict: {e}")
+        
+        try:
+            # Si receptor es un objeto Usuario, usar to_dict()
+            if hasattr(self.receptor, 'to_dict'):
+                receptor_dict = self.receptor.to_dict()
+            # Si es un ObjectId, intentar obtener el usuario
+            elif hasattr(self, '_data') and 'receptor' in self._data:
+                from utils.mongo_helpers import get_usuario_by_id
+                receptor_obj = get_usuario_by_id(str(self._data['receptor']))
+                receptor_dict = receptor_obj.to_dict() if receptor_obj else None
+            elif self.receptor:
+                from utils.mongo_helpers import get_usuario_by_id
+                receptor_obj = get_usuario_by_id(str(self.receptor))
+                receptor_dict = receptor_obj.to_dict() if receptor_obj else None
+        except Exception as e:
+            print(f"⚠️ Error obteniendo receptor en to_dict: {e}")
+        
         return {
             'id': str(self.id),
             'texto': self.texto,
-            'fechaDeCreado': self.fechaDeCreado.isoformat(),
-            'emisor': self.emisor.to_dict() if self.emisor else None,
-            'receptor': self.receptor.to_dict() if self.receptor else None,
+            'fechaDeCreado': self.fechaDeCreado.isoformat() if self.fechaDeCreado else None,
+            'emisor': emisor_dict,
+            'receptor': receptor_dict,
             'leido': self.leido.isoformat() if self.leido else None
         }
     

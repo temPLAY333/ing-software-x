@@ -51,7 +51,7 @@ class Log(Document):
             ip_address=ip_address,
             metadata=metadata or {}
         )
-        log.save()
+        log.save(using='logs')  # Especificar el alias de la base de datos
         return log
     
     def to_dict(self):

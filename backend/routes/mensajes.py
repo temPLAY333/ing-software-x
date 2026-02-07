@@ -18,14 +18,38 @@ mensajes_bp = Blueprint("mensajes", __name__)
 @jwt_required()
 def obtener_mis_mensajes_route():
     try:
+        from flask import request
+        # Debug: verificar headers
+        auth_header = request.headers.get('Authorization', 'No Authorization header')
+        print(f"🔑 Authorization header recibido: {auth_header[:50] if len(auth_header) > 50 else auth_header}...")
+        
         usuario_id = get_jwt_identity()
-        usuario = Usuario.objects(id=usuario_id).first()
+        print(f"🔑 Usuario ID del token: {usuario_id}")
+        
+        # Usar función helper que maneja el problema de thread local
+        from utils.mongo_helpers import get_usuario_by_id
+        usuario = get_usuario_by_id(usuario_id)
 
         if not usuario:
+            print(f"❌ Usuario no encontrado para ID: {usuario_id}")
+            # Verificar si hay usuarios en la base de datos
+            from models import Usuario as UsuarioModel
+            try:
+                total_usuarios = UsuarioModel.objects.select_related(0).count()
+                print(f"📊 Total de usuarios en la BD: {total_usuarios}")
+                # Listar algunos IDs para debug
+                if total_usuarios > 0:
+                    primeros_usuarios = list(UsuarioModel.objects.select_related(0).limit(5))
+                    print(f"📋 Primeros usuarios en BD:")
+                    for u in primeros_usuarios:
+                        print(f"  - ID: {u.id}, nickName: {u.nickName}")
+            except Exception as e:
+                print(f"⚠️ Error al contar usuarios: {e}")
+            
             return jsonify({
                 "success": False,
-                "error": "Usuario no autenticado",
-                "code": "AUTH_ERROR",
+                "error": f"Usuario no encontrado para ID: {usuario_id}",
+                "code": "USER_NOT_FOUND",
             }), 401
 
         limit = int(request.args.get("limit", 20))
@@ -33,20 +57,25 @@ def obtener_mis_mensajes_route():
 
         mensajes, total = obtener_mis_mensajes(usuario, limit, offset)
 
+        # Convertir mensajes a lista para evitar problemas de thread local
+        mensajes_list = list(mensajes)
+
         return jsonify({
             "success": True,
             "data": {
-                "mensajes": [mensaje.to_dict() for mensaje in mensajes],
+                "mensajes": [mensaje.to_dict() for mensaje in mensajes_list],
                 "total": total,
                 "limit": limit,
                 "offset": offset,
                 "hasMore": (offset + limit) < total,
             }
         }), 200
-    except Exception:
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({
             "success": False,
-            "error": "Error al obtener mensajes propios",
+            "error": f"Error al obtener mensajes propios: {str(e)}",
             "code": "INTERNAL_ERROR",
         }), 500
 

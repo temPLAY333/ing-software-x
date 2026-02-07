@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
+import { Observable, BehaviorSubject, of } from 'rxjs';
+import { tap, map, catchError } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 export interface Usuario {
@@ -114,9 +114,14 @@ export class MensajesPrivadosService {
     ).pipe(
       map(response => {
         if (!response.success || !response.data) {
-          throw new Error(response.error || 'Error al listar conversaciones');
+          // Retornar array vacío en lugar de lanzar error
+          return [];
         }
         return response.data;
+      }),
+      catchError(() => {
+        // En caso de error (ej: 401), retornar array vacío
+        return of([]);
       })
     );
   }
@@ -194,6 +199,10 @@ export class MensajesPrivadosService {
           return [];
         }
         return response.data;
+      }),
+      catchError(() => {
+        // En caso de error, retornar array vacío
+        return of([]);
       })
     );
   }
