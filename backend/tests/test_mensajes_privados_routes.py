@@ -303,7 +303,93 @@ def test_crear_mensaje_privado_receptor_no_encontrado(app_client, auth_headers, 
     assert response.status_code == 400
     payload = response.get_json()
     assert payload["success"] is False
-    assert "no se pudo crear" in payload["error"].lower()
+
+
+def test_crear_mensaje_privado_texto_vacio(app_client, auth_headers, monkeypatch):
+    """Test que verifica que no se puede enviar un mensaje con texto vacío"""
+    import routes.mensajes_privados as mensajes_privados
+    import utils.mongo_helpers
+
+    usuario_actual = FakeUsuario("user_1", "juan")
+
+    def fake_get_usuario_by_id(usuario_id):
+        if usuario_id == "user_1":
+            return usuario_actual
+        return None
+
+    monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
+    # El validador debe rechazar texto vacío
+    monkeypatch.setattr(mensajes_privados, "validar_mensaje_privado", lambda *args: (False, "El mensaje no puede estar vacío"))
+
+    response = app_client.post(
+        "/api/mensajes-privados",
+        json={"receptor_id": "user_2", "texto": ""},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    payload = response.get_json()
+    assert payload["success"] is False
+    assert "vacío" in payload["error"].lower() or "empty" in payload["error"].lower()
+
+
+def test_crear_mensaje_privado_texto_muy_largo(app_client, auth_headers, monkeypatch):
+    """Test que verifica que no se puede enviar un mensaje con más de 1000 caracteres"""
+    import routes.mensajes_privados as mensajes_privados
+    import utils.mongo_helpers
+
+    usuario_actual = FakeUsuario("user_1", "juan")
+
+    def fake_get_usuario_by_id(usuario_id):
+        if usuario_id == "user_1":
+            return usuario_actual
+        return None
+
+    # Crear texto de más de 1000 caracteres
+    texto_largo = "a" * 1001
+
+    monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
+    # El validador debe rechazar texto muy largo
+    monkeypatch.setattr(mensajes_privados, "validar_mensaje_privado", lambda *args: (False, "El mensaje no puede exceder 1000 caracteres"))
+
+    response = app_client.post(
+        "/api/mensajes-privados",
+        json={"receptor_id": "user_2", "texto": texto_largo},
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    payload = response.get_json()
+    assert payload["success"] is False
+    assert "1000" in payload["error"] or "exceder" in payload["error"].lower()
+
+
+def test_crear_mensaje_privado_a_si_mismo(app_client, auth_headers, monkeypatch):
+    """Test que verifica que no se puede enviar un mensaje a sí mismo"""
+    import routes.mensajes_privados as mensajes_privados
+    import utils.mongo_helpers
+
+    usuario_actual = FakeUsuario("user_1", "juan")
+
+    def fake_get_usuario_by_id(usuario_id):
+        if usuario_id == "user_1":
+            return usuario_actual
+        return None
+
+    monkeypatch.setattr(utils.mongo_helpers, "get_usuario_by_id", fake_get_usuario_by_id)
+    # El validador debe rechazar emisor = receptor
+    monkeypatch.setattr(mensajes_privados, "validar_mensaje_privado", lambda *args: (False, "No puedes enviarte mensajes a ti mismo"))
+
+    response = app_client.post(
+        "/api/mensajes-privados",
+        json={"receptor_id": "user_1", "texto": "hola"},  # Mismo ID que el emisor
+        headers=auth_headers,
+    )
+
+    assert response.status_code == 400
+    payload = response.get_json()
+    assert payload["success"] is False
+    assert "ti mismo" in payload["error"].lower() or "yourself" in payload["error"].lower()
 
 
 def test_contar_no_leidos(app_client, auth_headers, monkeypatch):

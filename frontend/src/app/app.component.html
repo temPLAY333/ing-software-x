@@ -4,21 +4,18 @@
   </main>
 
   <!-- Bottom Navigation Bar -->
-  <nav class="bottom-nav" *ngIf="tieneToken()">
-    <a routerLink="/mensajes-privados" routerLinkActive="active" class="nav-item" title="Buscar">
-      <span class="nav-icon">🔍</span>
-    </a>
-    <a routerLink="/mensajes-propios" routerLinkActive="active" class="nav-item" title="Ver Mensajes Propios">
+  <nav class="bottom-nav" *ngIf="tieneToken() && mostrarNavbar">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-item" title="Inicio">
       <span class="nav-icon">🏠</span>
     </a>
-    <a routerLink="/mensajes-privados" routerLinkActive="active" class="nav-item nav-item-center" title="Nuevo">
-      <span class="nav-icon-plus">+</span>
+    <a routerLink="/mensajes-propios" routerLinkActive="active" class="nav-item" title="Mis Mensajes">
+      <span class="nav-icon">📝</span>
     </a>
-    <a routerLink="/seguidores" routerLinkActive="active" class="nav-item" title="Mostrar Seguidores">
-      <span class="nav-icon">🔔</span>
+    <a routerLink="/mensajes-privados" routerLinkActive="active" class="nav-item nav-item-center" title="Chat">
+      <span class="nav-icon">💬</span>
     </a>
-    <a routerLink="/mensajes-privados" routerLinkActive="active" class="nav-item" title="Chats Privados">
-      <span class="nav-icon">✉</span>
+    <a routerLink="/seguidores" routerLinkActive="active" class="nav-item" title="Seguidores">
+      <span class="nav-icon">👥</span>
     </a>
   </nav>
 </div>

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory
 from flask_restful import Api
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -12,6 +12,10 @@ load_dotenv()
 
 # Initialize Flask app
 app = Flask(__name__)
+
+# Carpeta para avatares subidos
+app.config['UPLOAD_AVATARS_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads', 'avatars')
+os.makedirs(app.config['UPLOAD_AVATARS_FOLDER'], exist_ok=True)
 
 # Configuration
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production-min-32-chars')
@@ -27,11 +31,17 @@ app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'noreply@app.com')
 
 # Initialize extensions
-CORS(app, resources={r"/api/*": {
-    "origins": os.getenv('CORS_ORIGINS', '*').split(','),
-    "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    "allow_headers": ["Content-Type", "Authorization"]
-}})
+CORS(app, resources={
+    r"/api/*": {
+        "origins": os.getenv('CORS_ORIGINS', '*').split(','),
+        "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    },
+    r"/uploads/*": {
+        "origins": os.getenv('CORS_ORIGINS', '*').split(','),
+        "methods": ["GET"],
+    }
+})
 api = Api(app)
 jwt = JWTManager(app)
 mail = Mail(app)
@@ -48,12 +58,22 @@ from routes.mensajes_privados import mensajes_privados_bp
 from routes.mensajes import mensajes_bp
 from routes.seguidores import seguidores_bp
 from routes.testing import testing_bp
+from routes.usuarios import usuarios_bp
 
 # Register blueprints
 app.register_blueprint(mensajes_privados_bp, url_prefix='/api')
 app.register_blueprint(mensajes_bp, url_prefix='/api')
 app.register_blueprint(seguidores_bp, url_prefix='/api')
 app.register_blueprint(testing_bp, url_prefix='/api')  # Testing routes
+app.register_blueprint(usuarios_bp, url_prefix='/api')
+
+# Servir archivos subidos (avatares)
+@app.route('/uploads/avatars/<path:filename>')
+def serve_avatar(filename):
+    folder = app.config['UPLOAD_AVATARS_FOLDER']
+    if not os.path.exists(folder):
+        return jsonify({'error': 'Not found'}), 404
+    return send_from_directory(folder, filename)
 
 # Health check endpoint
 @app.route('/health', methods=['GET'])

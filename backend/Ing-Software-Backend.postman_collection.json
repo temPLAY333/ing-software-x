@@ -1,0 +1,241 @@
+{
+	"info": {
+		"_postman_id": "ing-soft-backend-001",
+		"name": "Ing-Software Backend",
+		"description": "Colección para probar la API del backend (mensajes privados, mensajes públicos, seguidores, perfil, upload).\n\n**Uso:**\n1. Ejecuta «Testing > Obtener token» con un nickName (ej: juanperez) y copia el token de la respuesta.\n2. En la colección, pestaña Variables: pega el token en `token` (Current Value).\n3. El resto de requests usan automáticamente Authorization: Bearer {{token}}.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{ "key": "baseUrl", "value": "http://localhost:5000" },
+		{ "key": "token", "value": "" }
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{ "key": "token", "value": "{{token}}", "type": "string" }
+		]
+	},
+	"item": [
+		{
+			"name": "Health",
+			"item": [
+				{
+					"name": "Health check",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/health",
+						"description": "Estado del servicio."
+					}
+				}
+			]
+		},
+		{
+			"name": "Testing",
+			"item": [
+				{
+					"name": "Obtener token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const json = pm.response.json();",
+									"    if (json.success && json.data && json.data.token) {",
+									"        pm.collectionVariables.set('token', json.data.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/testing/token/:user_identifier",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "testing", "token", ":user_identifier"],
+							"variable": [
+								{ "key": "user_identifier", "value": "juanperez", "description": "nickName o ID del usuario" }
+							]
+						},
+						"description": "Genera un JWT para testing. Pasa nickName (ej: juanperez) o ID. Si la respuesta es 200, el token se guarda en la variable de colección 'token'."
+					}
+				}
+			]
+		},
+		{
+			"name": "Mensajes públicos",
+			"item": [
+				{
+					"name": "Obtener mis mensajes",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/mensajes/mios?limit=20&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mensajes", "mios"],
+							"query": [
+								{ "key": "limit", "value": "20" },
+								{ "key": "offset", "value": "0" }
+							]
+						},
+						"description": "Lista los mensajes públicos del usuario autenticado."
+					}
+				}
+			]
+		},
+		{
+			"name": "Seguidores",
+			"item": [
+				{
+					"name": "Listar seguidores",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/api/usuarios/seguidores",
+						"description": "Obtiene los seguidores del usuario autenticado."
+					}
+				}
+			]
+		},
+		{
+			"name": "Mensajes privados",
+			"item": [
+				{
+					"name": "Crear mensaje privado",
+					"request": {
+						"method": "POST",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"receptor_id\": \"<user_id_receptor>\",\n  \"texto\": \"Hola, ¿cómo estás?\"\n}"
+						},
+						"url": "{{baseUrl}}/api/mensajes-privados",
+						"description": "Envía un mensaje privado. receptor_id: ID del usuario receptor."
+					}
+				},
+				{
+					"name": "Listar conversaciones",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/api/mensajes-privados/conversaciones",
+						"description": "Lista las conversaciones del usuario con último mensaje y no leídos."
+					}
+				},
+				{
+					"name": "Obtener conversación",
+					"request": {
+						"method": "GET",
+						"url": {
+							"raw": "{{baseUrl}}/api/mensajes-privados/conversacion/:user_id?limit=50&offset=0",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mensajes-privados", "conversacion", ":user_id"],
+							"query": [
+								{ "key": "limit", "value": "50" },
+								{ "key": "offset", "value": "0" }
+							],
+							"variable": [
+								{ "key": "user_id", "value": "" }
+							]
+						},
+						"description": "Obtiene los mensajes de la conversación con el usuario indicado. user_id: ID del otro usuario."
+					}
+				},
+				{
+					"name": "Marcar mensaje como leído",
+					"request": {
+						"method": "PUT",
+						"url": {
+							"raw": "{{baseUrl}}/api/mensajes-privados/:mensaje_id/leer",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mensajes-privados", ":mensaje_id", "leer"],
+							"variable": [
+								{ "key": "mensaje_id", "value": "" }
+							]
+						},
+						"description": "Marca un mensaje como leído (el usuario debe ser el receptor)."
+					}
+				},
+				{
+					"name": "Contar no leídos",
+					"request": {
+						"method": "GET",
+						"url": "{{baseUrl}}/api/mensajes-privados/no-leidos",
+						"description": "Devuelve el número de mensajes privados no leídos."
+					}
+				},
+				{
+					"name": "Eliminar mensaje privado",
+					"request": {
+						"method": "DELETE",
+						"url": {
+							"raw": "{{baseUrl}}/api/mensajes-privados/:mensaje_id",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "mensajes-privados", ":mensaje_id"],
+							"variable": [
+								{ "key": "mensaje_id", "value": "" }
+							]
+						},
+						"description": "Elimina un mensaje (solo el emisor)."
+					}
+				}
+			]
+		},
+		{
+			"name": "Perfil y avatares",
+			"item": [
+				{
+					"name": "Subir avatar",
+					"request": {
+						"method": "POST",
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{ "key": "file", "type": "file", "src": "", "description": "Imagen PNG, JPEG, GIF o WebP (máx 5 MB)" }
+							]
+						},
+						"url": "{{baseUrl}}/api/upload/avatar",
+						"description": "Sube una imagen como avatar. Devuelve la URL; luego usa PATCH /api/usuarios/me para guardarla en el perfil."
+					}
+				},
+				{
+					"name": "Actualizar mi perfil",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{ "key": "Content-Type", "value": "application/json" }
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"fotoUsuario\": \"http://localhost:5000/uploads/avatars/xxx.png\",\n  \"fotoUsuarioPortada\": \"\",\n  \"biografia\": \"Mi biografía\"\n}"
+						},
+						"url": "{{baseUrl}}/api/usuarios/me",
+						"description": "Actualiza fotoUsuario, fotoUsuarioPortada y/o biografia del usuario autenticado."
+					}
+				}
+			]
+		},
+		{
+			"name": "Stream (SSE)",
+			"item": [
+				{
+					"name": "Conectar stream",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": "{{baseUrl}}/api/stream",
+						"description": "Server-Sent Events de ejemplo. En Postman se muestra el stream de datos."
+					}
+				}
+			]
+		}
+	]
+}

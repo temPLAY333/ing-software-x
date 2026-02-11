@@ -337,6 +337,28 @@ POST /api/auth/refresh     # Refrescar token
 POST /api/auth/logout      # Cerrar sesión
 ```
 
+### Fotos de perfil (avatares)
+
+En la BD **no se guardan las imágenes**, sino la **URL** en el campo `fotoUsuario` (y opcionalmente `fotoUsuarioPortada`) del usuario.
+
+1. **Subir avatar**  
+   **POST** `/api/upload/avatar`  
+   - **Headers:** `Authorization: Bearer <token>`  
+   - **Body:** `multipart/form-data` con campo `file` (imagen).  
+   - **Formatos:** PNG, JPEG, GIF, WebP. Máx. 5 MB.  
+   - **Respuesta 200:** `{ "success": true, "url": "http://localhost:5000/uploads/avatars/xxx.png" }`
+
+2. **Actualizar perfil (guardar la URL en la BD)**  
+   **PATCH** `/api/usuarios/me`  
+   - **Body:** `{ "fotoUsuario": "http://...", "fotoUsuarioPortada": "http://...", "biografia": "..." }`  
+   - La URL devuelta por el upload se guarda en `fotoUsuario`.
+
+3. **Servir archivos subidos**  
+   **GET** `/uploads/avatars/<filename>`  
+   - Las imágenes se guardan en `backend/static/uploads/avatars/`.
+
+Si `fotoUsuario` está vacío, el frontend puede mostrar un avatar por defecto (p. ej. `assets/default-avatar.png`). Los datos de prueba de `init_db.py` usan avatares generados por API externa (ui-avatars.com).
+
 ### Health Check
 ```
 GET /health               # Estado del servicio

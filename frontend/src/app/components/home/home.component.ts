@@ -11,7 +11,10 @@ import { environment } from '../../../environments/environment';
 })
 export class HomeComponent implements OnInit {
   usuarioNickname = 'juanperez';
+  usuarioBNickname = 'mariagarcia';
   cargando = false;
+  cargandoUsuarioA = false;
+  cargandoUsuarioB = false;
   error: string | null = null;
 
   constructor(
@@ -26,11 +29,23 @@ export class HomeComponent implements OnInit {
   }
 
   entrarComoUsuario(): void {
-    this.cargando = true;
+    this.entrarComoUsuarioPorNickname(this.usuarioNickname, 'cargandoUsuarioA');
+  }
+
+  entrarComoUsuarioB(): void {
+    this.entrarComoUsuarioPorNickname(this.usuarioBNickname, 'cargandoUsuarioB');
+  }
+
+  private entrarComoUsuarioPorNickname(nickname: string, loadingFlag: 'cargandoUsuarioA' | 'cargandoUsuarioB'): void {
+    if (loadingFlag === 'cargandoUsuarioA') {
+      this.cargandoUsuarioA = true;
+    } else {
+      this.cargandoUsuarioB = true;
+    }
     this.error = null;
 
     // Obtener token del backend
-    const url = `${environment.apiUrl}/testing/token/${this.usuarioNickname}`;
+    const url = `${environment.apiUrl}/testing/token/${nickname}`;
     
     this.http.get<any>(url).subscribe({
       next: (response) => {
@@ -48,13 +63,21 @@ export class HomeComponent implements OnInit {
           this.router.navigate(['/mensajes-propios']);
         } else {
           this.error = 'No se pudo obtener el token del servidor';
-          this.cargando = false;
+          if (loadingFlag === 'cargandoUsuarioA') {
+            this.cargandoUsuarioA = false;
+          } else {
+            this.cargandoUsuarioB = false;
+          }
         }
       },
       error: (err) => {
         console.error('Error al autenticarse:', err);
         this.error = err.error?.error || 'Error al conectarse con el servidor';
-        this.cargando = false;
+        if (loadingFlag === 'cargandoUsuarioA') {
+          this.cargandoUsuarioA = false;
+        } else {
+          this.cargandoUsuarioB = false;
+        }
       }
     });
   }

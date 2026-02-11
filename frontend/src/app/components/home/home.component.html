@@ -9,13 +9,23 @@
         <p class="status-user">Usuario: {{ authService.getCurrentUser()?.nickName }}</p>
       </div>
       
-      <button 
-        class="login-button" 
-        (click)="entrarComoUsuario()"
-        [disabled]="cargando">
-        <span *ngIf="!cargando">Entrar como {{ usuarioNickname }}</span>
-        <span *ngIf="cargando">Cargando...</span>
-      </button>
+      <div class="buttons-container">
+        <button 
+          class="login-button" 
+          (click)="entrarComoUsuario()"
+          [disabled]="cargandoUsuarioA || cargandoUsuarioB">
+          <span *ngIf="!cargandoUsuarioA">Entrar como {{ usuarioNickname }}</span>
+          <span *ngIf="cargandoUsuarioA">Cargando...</span>
+        </button>
+        
+        <button 
+          class="login-button login-button-b" 
+          (click)="entrarComoUsuarioB()"
+          [disabled]="cargandoUsuarioA || cargandoUsuarioB">
+          <span *ngIf="!cargandoUsuarioB">Entrar como {{ usuarioBNickname }}</span>
+          <span *ngIf="cargandoUsuarioB">Cargando...</span>
+        </button>
+      </div>
       
       <div class="error-message" *ngIf="error">
         <p>⚠️ {{ error }}</p>

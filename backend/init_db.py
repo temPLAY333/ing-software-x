@@ -114,6 +114,9 @@ def insert_sample_data():
                 rol="admin" if nick == "admin" else "user"
             )
             usuario.set_password("password123")
+            # Avatar por defecto vía API externa (cada usuario con avatar distinto por nombre)
+            nombre_avatar = f"{nombre}+{apellido}".replace(" ", "+")
+            usuario.fotoUsuario = f"https://ui-avatars.com/api/?name={nombre_avatar}&size=128&background=random"
             usuario.save()
             usuarios.append(usuario)
             print(f"✅ Usuario creado: {usuario.nickName}")

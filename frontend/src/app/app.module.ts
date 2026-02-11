@@ -1,11 +1,12 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { MensajePrivadoComponent } from './components/mensaje-privado/mensaje-privado.component';
+import { ChatPrivadoComponent } from './components/chat-privado/chat-privado.component';
 import { MensajesPropiosComponent } from './components/mensajes-propios/mensajes-propios.component';
 import { SeguidoresComponent } from './components/seguidores/seguidores.component';
 import { HomeComponent } from './components/home/home.component';
@@ -15,6 +16,7 @@ import { HttpErrorInterceptor } from './interceptors/http-error.interceptor';
   declarations: [
     AppComponent,
     MensajePrivadoComponent,
+    ChatPrivadoComponent,
     MensajesPropiosComponent,
     SeguidoresComponent,
     HomeComponent
@@ -23,6 +25,7 @@ import { HttpErrorInterceptor } from './interceptors/http-error.interceptor';
     BrowserModule,
     HttpClientModule,
     ReactiveFormsModule,
+    FormsModule,
     AppRoutingModule
   ],
   providers: [
