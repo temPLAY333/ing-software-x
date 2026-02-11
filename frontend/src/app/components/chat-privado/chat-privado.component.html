@@ -64,23 +64,20 @@
           formControlName="texto"
           placeholder="Escribe tu mensaje..."
           class="input-mensaje"
-          rows="3"
+          rows="1"
           maxlength="1000"
         ></textarea>
         
-        <div class="form-footer">
-          <span class="contador">
-            {{ longitudTexto }} / 1000
-          </span>
-          
-          <button 
-            type="submit"
-            class="btn-enviar"
-            [disabled]="!puedeEnviar"
-          >
-            {{ enviandoMensaje ? 'Enviando...' : 'Enviar' }}
-          </button>
-        </div>
+        <button 
+          type="submit"
+          class="btn-enviar"
+          [disabled]="!puedeEnviar"
+          [title]="enviandoMensaje ? 'Enviando...' : 'Enviar mensaje'"
+        >
+          <svg viewBox="0 0 24 24" class="icon-enviar">
+            <path d="M2,21L23,12L2,3V10L17,12L2,14V21Z" />
+          </svg>
+        </button>
       </div>
 
       <!-- Errores de validación -->

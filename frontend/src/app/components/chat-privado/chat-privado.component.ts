@@ -203,7 +203,8 @@ export class ChatPrivadoComponent implements OnInit, OnDestroy {
 
     this.mensajesService.enviarMensaje(this.usuarioSeleccionado.id, texto).subscribe({
       next: (mensaje) => {
-        this.conversacionActual.push(mensaje);
+        // No agregamos el mensaje aquí porque el SSE lo manejará automáticamente
+        // this.conversacionActual.push(mensaje);
         this.mensajeForm.reset();
         this.scrollToBottom();
         

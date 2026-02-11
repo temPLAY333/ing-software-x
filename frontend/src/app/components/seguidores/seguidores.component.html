@@ -1,23 +1,63 @@
-<section>
-  <h2>Seguidores</h2>
-
-  <div *ngIf="cargando" class="info">Cargando...</div>
-
-  <div *ngIf="error" class="error">
-    {{ error }}
-  </div>
-
-  <div *ngIf="seguidores.length === 0 && !cargando && !error" class="empty">
-    No tienes seguidores todavía.
-  </div>
-
-  <ul class="lista">
-    <li *ngFor="let seguidor of seguidores">
-      <div class="nombre">
-        {{ seguidor.nombre }} {{ seguidor.apellido }}
+<section class="seguidores-container">
+  <!-- Header con información del usuario -->
+  <div class="header-usuario" *ngIf="usuarioActual">
+    <div class="avatar-container">
+      <img [src]="usuarioActual.fotoUsuario || 'assets/default-avatar.png'" alt="Avatar" class="avatar-img">
+    </div>
+    <div class="info-usuario">
+      <div class="nombre-completo">
+        {{ usuarioActual.nombre }} {{ usuarioActual.apellido }}
       </div>
-      <div class="nick">{{ '@' + seguidor.nickName }}</div>
-    </li>
-  </ul>
-</section>
+      <div class="nick">{{ usuarioActual.nickName }}</div>
+    </div>
+  </div>
 
+  <!-- Subheader con tabs -->
+  <div class="tabs-container">
+    <button 
+      class="tab" 
+      [class.active]="vistaActiva == 'seguidores'"
+      (click)="cambiarVista('seguidores')">
+      Seguidores
+    </button>
+    <button 
+      class="tab" 
+      [class.active]="vistaActiva == 'siguiendo'"
+      (click)="cambiarVista('siguiendo')">
+      Siguiendo
+    </button>
+  </div>
+
+  <!-- Contenido -->
+  <div class="contenido">
+    <div *ngIf="cargando" class="info">Cargando...</div>
+
+    <div *ngIf="error" class="error">
+      {{ error }}
+    </div>
+
+    <div *ngIf="seguidores.length === 0 && !cargando && !error" class="empty">
+      <ng-container *ngIf="vistaActiva == 'seguidores'">No tienes seguidores todavía.</ng-container>
+      <ng-container *ngIf="vistaActiva == 'siguiendo'">No sigues a nadie todavía.</ng-container>
+    </div>
+
+    <ul class="lista">
+      <li *ngFor="let seguidor of seguidores" class="usuario-item" (click)="verPerfilUsuario(seguidor)">
+        <div class="avatar-pequeno-container">
+          <img [src]="seguidor.fotoUsuario || 'assets/default-avatar.png'" alt="Avatar" class="avatar-pequeno-img">
+        </div>
+        <div class="info-seguidor">
+          <div class="nombre">
+            {{ seguidor.nombre }} {{ seguidor.apellido }}
+          </div>
+          <div class="nick">{{ seguidor.nickName }}</div>
+        </div>
+        <div class="icono-flecha">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z"></path>
+          </svg>
+        </div>
+      </li>
+    </ul>
+  </div>
+</section>
