@@ -1,6 +1,23 @@
-version: '3.8'
 
 services:
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    command: ["mongod", "--quiet"]
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - app-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   backend:
     build: ./backend
     container_name: backend-flask
@@ -15,12 +32,18 @@ services:
       - MAIL_PORT=${MAIL_PORT}
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
+      # Configuración de inicialización de DB
+      - INIT_DB_WITH_SAMPLE_DATA=${INIT_DB_WITH_SAMPLE_DATA:-true}
+      - SKIP_DB_INIT=${SKIP_DB_INIT:-false}
     volumes:
       - ./backend:/app
-      - ./common:/app/common
-    command: python app.py
+    command: python start.py
     networks:
       - app-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
@@ -35,6 +58,11 @@ services:
       - app-network
     depends_on:
       - backend
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:
+  mongodb_config:
 
 networks:
   app-network:

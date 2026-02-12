@@ -19,15 +19,15 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
     // Usuario ya está inicializado en el constructor del servicio
     
-    // Ocultar navbar en el chat de mensajes privados
+    // Ocultar navbar en el chat de mensajes privados y en home
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
-      this.mostrarNavbar = !event.url.includes('/chat-privado');
+      this.mostrarNavbar = !event.url.includes('/chat-privado') && event.url !== '/' && event.url !== '/home';
     });
 
     // Verificar ruta inicial
-    this.mostrarNavbar = !this.router.url.includes('/chat-privado');
+    this.mostrarNavbar = !this.router.url.includes('/chat-privado') && this.router.url !== '/' && this.router.url !== '/home';
   }
 
   tieneToken(): boolean {
